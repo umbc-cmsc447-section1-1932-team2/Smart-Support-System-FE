@@ -1,5 +1,6 @@
-import Button from "./Buttons";
-import logo from "../assets/logo.png";
+ import Button from "./Buttons";
+ import { Link } from "react-router-dom";
+ import logo from "../assets/logo.png";
 import { FaRegUserCircle } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
 
@@ -26,9 +27,12 @@ function Navbar({ user = null }) {
             <Button variant="outline" size="medium">
               Login
             </Button>
+            
+            <Link to="/signup">
             <Button variant="filled" size="medium">
               Sign Up
             </Button>
+            </Link>
           </>
         )}
       </div>
