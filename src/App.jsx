@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import TicketDashboard from "./pages/TicketDashboard";
 
 function App() {
   return (
@@ -13,17 +14,13 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-right" />
         <Routes>
+
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={
-              <Protected>
-                <Dashboard />
-              </Protected>
-            }
-          />
+          <Route path="/dashboard" element={<Protected> <Dashboard /> </Protected>}/>
+          <Route path="/view-tickets" element={<Protected> <TicketDashboard /> </Protected>}/>
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>
