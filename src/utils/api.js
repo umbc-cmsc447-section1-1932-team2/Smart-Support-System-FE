@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 
-export const BASE_URL = "http://127.0.0.1:3001";
+export const BASE_URL = "http://127.0.0.1:5000";
 
 export async function apiFetch(path, method = "GET", data = null) {
   const config = {
