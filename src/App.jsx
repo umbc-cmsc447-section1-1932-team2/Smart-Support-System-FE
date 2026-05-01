@@ -7,6 +7,8 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import TicketDashboard from "./pages/TicketDashboard";
+import AgentDashboard from "./pages/AgentDashboard";
+import TicketChat from "./pages/TicketChat";
 
 function App() {
   return (
@@ -19,7 +21,9 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Protected> <Dashboard /> </Protected>}/>
+          <Route path="/agent-dashboard" element={<Protected> <AgentDashboard /> </Protected>}/>
           <Route path="/view-tickets" element={<Protected> <TicketDashboard /> </Protected>}/>
+          <Route path="/chat/:ticketId" element={<Protected> <TicketChat /> </Protected>}/>
 
         </Routes>
       </BrowserRouter>

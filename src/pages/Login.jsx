@@ -13,12 +13,21 @@ function Login() {
 
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     const { ok, data } = await apiFetch("/auth/login", "POST", form);
+    
     if (!ok) return;
+
+    // Tell AuthContext we are logged in
     login(data);
-    navigate("/dashboard");
+
+    // The Traffic Controller: Route based on role
+    if (data.role === "AGENT" || data.role === "ADMIN") {
+      navigate("/agent-dashboard");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
