@@ -8,7 +8,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import TicketDashboard from "./pages/TicketDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
+import UserSettings from './pages/UserSettings';
 import TicketChat from "./pages/TicketChat";
+import UserLayout from './components/UserLayout';
+
 
 function App() {
   return (
@@ -20,8 +23,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Protected> <Dashboard /> </Protected>}/>
+          <Route path="/dashboard" element={<Protected> <UserLayout> <Dashboard /></UserLayout> </Protected>}/>
           <Route path="/agent-dashboard" element={<Protected> <AgentDashboard /> </Protected>}/>
+          <Route path="/account" element={<Protected> <UserLayout> <UserSettings /> </UserLayout> </Protected>}/>
           <Route path="/view-tickets" element={<Protected> <TicketDashboard /> </Protected>}/>
           <Route path="/chat/:ticketId" element={<Protected> <TicketChat /> </Protected>}/>
 

@@ -1,7 +1,7 @@
 ﻿import toast from "react-hot-toast";
 
 // Try switching back to localhost if 127.0.0.1 isn't working
-export const BASE_URL = "http://localhost:3000";
+export const BASE_URL = "http://localhost:5000";
 
 export async function apiFetch(path, method = "GET", data = null) {
   const storedUser = localStorage.getItem("user");

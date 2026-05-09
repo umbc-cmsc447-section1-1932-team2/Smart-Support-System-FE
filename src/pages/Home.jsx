@@ -18,9 +18,14 @@ function Home() {
           responses, and delight your customers at every interaction
         </p>
 
-        <Button variant="filled" size="big">
-          Open a ticket
+        <Button 
+          variant="filled" 
+          size="big" 
+          onClick={() => navigate('/login')}
+        >
+          Get started
         </Button>
+
       </main>
       <footer className="py-4 text-center text-sm text-primary border-t border-gray-200">
         Project by Team 2

@@ -10,7 +10,7 @@ import { apiFetch } from "../utils/api";
 
 const MENU_ITEMS = [
   { label: "Profile", icon: IoPersonOutline, to: "/profile" },
-  { label: "Settings", icon: IoSettingsOutline, to: "/settings" },
+  { label: "Settings", icon: IoSettingsOutline, to: "/account" },
 ];
 
 function Navbar() {

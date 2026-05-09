@@ -27,7 +27,7 @@ const handleSubmit = async (e) => {
       setCategory('TECHNICAL');
       setPriority('MEDIUM');
       setDescription('');
-      onClose(); // This triggers the useEffect in TicketDashboard!
+      onClose(); 
     }
     
     setIsSubmitting(false);
@@ -35,7 +35,6 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 animate-in fade-in duration-200">
-      {/* Changed max-w-md to max-w-2xl to make the modal wider */}
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
         
         {/* Header */}
@@ -60,7 +59,7 @@ const handleSubmit = async (e) => {
             />
           </div>
 
-          {/* New 2-Column Grid for Category and Priority */}
+          {/* Category and Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
@@ -93,7 +92,6 @@ const handleSubmit = async (e) => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-            {/* Increased rows from 4 to 6 for the larger modal */}
             <textarea 
               required
               rows="6"
@@ -106,7 +104,7 @@ const handleSubmit = async (e) => {
 
           {/* Actions */}
           <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-            {/* Optional visual-only attachment button for the new features */}
+            
             <button type="button" className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors">
               <Paperclip size={16} />
               <span>Attach File</span>
