@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { HiOutlineUserCircle } from 'react-icons/hi';
 import toast from 'react-hot-toast';
+import { apiFetch } from "../utils/api";
 
 const VerifyUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const pendingCount = users.length;
-
   useEffect(() => {
     const fetchPendingUsers = async () => {
       try {
-        const mockUsers = [
-          { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'AGENT', dateJoined: '5/16/2026 at 02:15 PM' },
-          { id: 2, name: 'Bob Johnson', email: 'bob@example.com', role: 'USER', dateJoined: '5/16/2026 at 01:10 AM' },
-          { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', role: 'AGENT', dateJoined: '5/15/2026 at 11:45 PM' },
-        ];
-        setUsers(mockUsers);
+        const response = await apiFetch('/user/all');
+        const userArray = response?.data || (Array.isArray(response) ? response : []);
+        
+        if (Array.isArray(userArray)) {
+          const pendingStaff = userArray.filter(
+            user => user.verification === 'UNVERIFIED' && (user.role === 'AGENT' || user.role === 'ADMIN')
+          );
+          setUsers(pendingStaff);
+        } else {
+          setUsers([]);
+        }
       } catch (error) {
-        toast.error("Failed to load pending verification queue.");
+        console.error("Failed to load verification queue:", error);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
@@ -28,20 +33,30 @@ const VerifyUsers = () => {
   }, []);
 
   const handleVerify = async (userId) => {
+    const previousUsers = [...users];
+    setUsers(users.filter(user => user.id !== userId));
+    
     try {
-      setUsers(users.filter(user => user.id !== userId));
+      await apiFetch(`/user/${userId}/verify`, 'PATCH');
       toast.success("Account successfully verified!");
     } catch (error) {
+      console.error("Verification backend sync issue:", error);
+      setUsers(previousUsers);
       toast.error("Could not verify account.");
     }
   };
 
   const handleDeny = async (userId) => {
+    const previousUsers = [...users];
+    setUsers(users.filter(user => user.id !== userId));
+    
     try {
-      setUsers(users.filter(user => user.id !== userId));
-      toast.success("Registration request denied.");
+      await apiFetch(`/user/${userId}`, 'DELETE');
+      toast.success("Registration request denied. Account removed from system.");
     } catch (error) {
-      toast.error("Could not deny account request.");
+      console.error("Account deletion backend sync issue:", error);
+      setUsers(previousUsers);
+      toast.error("Could not delete account from server.");
     }
   };
 
@@ -51,9 +66,9 @@ const VerifyUsers = () => {
         
         <div className="p-10 pb-6">
           <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-3xl font-black text-[#1e293b]">Account Verification</h1>
+            <h1 className="text-3xl font-black text-[#1e293b]">Staff Verification</h1>
             <span className="bg-blue-50 text-[#1e4eb8] text-xs font-black px-3 py-1 rounded-full border border-blue-100">
-              {pendingCount} Pending
+              {users.length} Pending
             </span>
           </div>
           <hr className="border-slate-100" />
@@ -64,12 +79,12 @@ const VerifyUsers = () => {
             <div className="max-h-[55vh] overflow-y-auto divide-y divide-slate-100">
               {loading ? (
                 <div className="p-12 text-center text-sm text-slate-400 font-medium animate-pulse">
-                  Loading pending queue...
+                  Loading staff verification queue...
                 </div>
               ) : users.length === 0 ? (
                 <div className="p-16 text-center">
                   <p className="text-slate-400 font-bold text-base">All clear!</p>
-                  <p className="text-gray-400 text-xs mt-1">No user registrations are currently pending verification.</p>
+                  <p className="text-gray-400 text-xs mt-1">No agent or admin applications are currently pending.</p>
                 </div>
               ) : (
                 users.map((user) => (
@@ -81,21 +96,16 @@ const VerifyUsers = () => {
                       <HiOutlineUserCircle className="text-4xl text-slate-300 flex-shrink-0" />
                       <div className="truncate">
                         <div className="flex items-center gap-2">
-                          <p className="font-black text-slate-900 text-sm truncate">{user.name}</p>
+                          <p className="font-black text-slate-900 text-sm truncate">{user.name || user.username}</p>
                           <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
                             user.role === 'ADMIN' 
                               ? 'bg-red-50 text-red-600' 
-                              : user.role === 'AGENT'
-                              ? 'bg-amber-50 text-amber-600'
-                              : 'bg-blue-50 text-blue-600'
+                              : 'bg-amber-50 text-amber-600'
                           }`}>
                             {user.role}
                           </span>
                         </div>
                         <p className="text-gray-400 text-[11px] font-medium mt-0.5 truncate">{user.email}</p>
-                        <p className="text-gray-400 text-[10px] mt-1">
-                          Registered: {user.dateJoined}
-                        </p>
                       </div>
                     </div>
 
