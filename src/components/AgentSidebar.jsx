@@ -32,21 +32,25 @@ const NavItem = ({ icon: Icon, label, active, badge, onClick, sub }) => (
   </div>
 );
 
-const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
+const AgentSidebar = ({ onCreateTicket, onCloseModal, agentControls, tickets, currentUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  
-  const isOnDashboard = location.pathname === '/view-tickets' || location.pathname === '/dashboard';
+  const isOnDashboard = location.pathname === '/agent-dashboard';
+
+  // Calculate dynamic badges matching your hook configuration
+  const openTicketsCount = tickets?.filter(t => t?.status?.toUpperCase() === 'OPEN').length || 0;
+  const activeChatsCount = tickets?.filter(t => t?.status === 'IN_PROGRESS' && String(t.assignedToId) === String(currentUser?.id)).length || 0;
 
   const handleTabSwitch = (tabName) => {
     if (onCloseModal) onCloseModal();
     
     if (isOnDashboard && agentControls) {
+      agentControls.clearChat(); 
       agentControls.setCurrentTab(tabName);
     } else {
-      
-      navigate(`/view-tickets?tab=${tabName}`);
+      // Pass the tab name securely through the URL parameters
+      navigate(`/agent-dashboard?tab=${tabName}`);
     }
   };
 
@@ -59,34 +63,34 @@ const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
         
         <NavItem 
           icon={HiOutlineHome} 
-          label="Dashboard" 
-          active={isOnDashboard && agentControls?.currentTab === 'ALL'}
-          onClick={() => {
-            if (onCloseModal) onCloseModal();
-            navigate('/dashboard');
-          }} 
+          label="Agent Dashboard" 
+          active={isOnDashboard && agentControls?.currentTab === 'QUEUE' && !agentControls?.hasActiveChat}
+          onClick={() => handleTabSwitch('QUEUE')} 
         />
         
-        <NavItem 
-          icon={HiOutlineTicket} 
-          label="View All Tickets" 
-          active={isOnDashboard && agentControls?.currentTab === 'ALL'}
-          onClick={() => handleTabSwitch('ALL')} 
-        />
-
         <div className="space-y-1">
+          <NavItem 
+            sub
+            icon={HiOutlineTicket} 
+            label="Support Queue" 
+            active={isOnDashboard && agentControls?.currentTab === 'QUEUE'}
+            badge={openTicketsCount}
+            onClick={() => handleTabSwitch('QUEUE')} 
+          />
+
           <NavItem 
             sub 
             icon={HiOutlineInbox} 
-            label="Open Tickets" 
-            active={isOnDashboard && agentControls?.currentTab === 'OPEN'}
-            badge={isOnDashboard ? agentControls?.ticketCount : 0} 
-            onClick={() => handleTabSwitch('OPEN')} 
+            label="My Active chats" 
+            active={isOnDashboard && agentControls?.currentTab === 'MY_TICKETS'}
+            badge={activeChatsCount}
+            onClick={() => handleTabSwitch('MY_TICKETS')} 
           />
+          
           <NavItem 
             sub 
             icon={HiOutlineCheckCircle} 
-            label="Closed Tickets" 
+            label="My Closed Tickets" 
             active={isOnDashboard && agentControls?.currentTab === 'CLOSED'}
             onClick={() => handleTabSwitch('CLOSED')} 
           />
@@ -113,4 +117,4 @@ const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
   );
 };
 
-export default Sidebar;
+export default AgentSidebar;

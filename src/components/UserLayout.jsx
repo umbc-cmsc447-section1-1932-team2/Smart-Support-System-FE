@@ -1,12 +1,42 @@
 import React, { useState } from 'react';
+import { useAuth } from "../context/AuthContext"
 import Navbar from "./Navbar";
-import Sidebar from "./UserSidebar";
+import UserSidebar from "./UserSidebar";
+import AgentSidebar from "./AgentSidebar";
+import AdminSidebar from "./AdminSidebar";
 import CreateTicketModal from "./CreateTicketModal";
 
-const UserLayout = ({ children }) => {
+const UserLayout = ({ children, data, agentControls, tickets, currentUser }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { user } = useAuth();
+
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+  const renderSidebar = () => {
+  switch (user?.role) {
+    case 'ADMIN':
+      return <AdminSidebar onCreateTicket={toggleModal} 
+      onCloseModal={() => setIsModalOpen(false)}
+      agentControls={agentControls}
+      tickets={tickets}
+      currentUser={currentUser}/>;
+    case 'AGENT':
+      return <AgentSidebar onCreateTicket={toggleModal}
+      agentControls={agentControls}
+      tickets={tickets}
+      currentUser={currentUser}/>;
+    case 'USER':
+    default:
+      return <UserSidebar 
+          onCreateTicket={toggleModal} 
+          onCloseModal={() => setIsModalOpen(false)}
+          agentControls={agentControls}
+          tickets={tickets}
+          currentUser={currentUser}
+        />;
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
@@ -15,7 +45,7 @@ const UserLayout = ({ children }) => {
       </div>
 
       <div className="flex flex-grow overflow-hidden">
-        <Sidebar onCreateTicket={toggleModal} />
+        {renderSidebar()}
 
         <main className="flex-grow overflow-y-auto pt-24 px-6 md:px-10">
           {React.Children.map(children, child => {

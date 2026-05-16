@@ -6,7 +6,8 @@ import {
   HiOutlineInbox, 
   HiOutlineCheckCircle,
   HiOutlineCog,
-  HiOutlinePencilAlt
+  HiOutlinePencilAlt,
+  HiOutlineUserGroup
 } from 'react-icons/hi';
 
 const NavItem = ({ icon: Icon, label, active, badge, onClick, sub }) => (
@@ -32,21 +33,23 @@ const NavItem = ({ icon: Icon, label, active, badge, onClick, sub }) => (
   </div>
 );
 
-const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
+const AdminSidebar = ({ onCreateTicket, onCloseModal, agentControls, tickets, currentUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  
-  const isOnDashboard = location.pathname === '/view-tickets' || location.pathname === '/dashboard';
+  const isOnDashboard = location.pathname === '/agent-dashboard';
+
+  const openTicketsCount = tickets?.filter(t => t?.status?.toUpperCase() === 'OPEN').length || 0;
+  const activeChatsCount = tickets?.filter(t => t?.status === 'IN_PROGRESS' && String(t.assignedToId) === String(currentUser?.id)).length || 0;
 
   const handleTabSwitch = (tabName) => {
     if (onCloseModal) onCloseModal();
     
     if (isOnDashboard && agentControls) {
+      agentControls.clearChat(); 
       agentControls.setCurrentTab(tabName);
     } else {
-      
-      navigate(`/view-tickets?tab=${tabName}`);
+      navigate(`/agent-dashboard?tab=${tabName}`);
     }
   };
 
@@ -59,44 +62,54 @@ const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
         
         <NavItem 
           icon={HiOutlineHome} 
-          label="Dashboard" 
-          active={isOnDashboard && agentControls?.currentTab === 'ALL'}
-          onClick={() => {
-            if (onCloseModal) onCloseModal();
-            navigate('/dashboard');
-          }} 
-        />
-        
-        <NavItem 
-          icon={HiOutlineTicket} 
-          label="View All Tickets" 
-          active={isOnDashboard && agentControls?.currentTab === 'ALL'}
-          onClick={() => handleTabSwitch('ALL')} 
+          label="Admin Dashboard" 
+          active={isOnDashboard && agentControls?.currentTab === 'QUEUE' && !agentControls?.hasActiveChat}
+          onClick={() => handleTabSwitch('QUEUE')} 
         />
 
         <div className="space-y-1">
           <NavItem 
+            sub
+            icon={HiOutlineTicket} 
+            label="Support Queue" 
+            active={isOnDashboard && agentControls?.currentTab === 'QUEUE'}
+            badge={openTicketsCount}
+            onClick={() => handleTabSwitch('QUEUE')} 
+          />
+
+          <NavItem 
             sub 
             icon={HiOutlineInbox} 
-            label="Open Tickets" 
-            active={isOnDashboard && agentControls?.currentTab === 'OPEN'}
-            badge={isOnDashboard ? agentControls?.ticketCount : 0} 
-            onClick={() => handleTabSwitch('OPEN')} 
+            label="My Active chats" 
+            active={isOnDashboard && agentControls?.currentTab === 'MY_TICKETS'}
+            badge={activeChatsCount}
+            onClick={() => handleTabSwitch('MY_TICKETS')} 
           />
+          
           <NavItem 
             sub 
             icon={HiOutlineCheckCircle} 
-            label="Closed Tickets" 
+            label="My Closed Tickets" 
             active={isOnDashboard && agentControls?.currentTab === 'CLOSED'}
             onClick={() => handleTabSwitch('CLOSED')} 
           />
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 space-y-1">
           <NavItem 
             icon={HiOutlinePencilAlt} 
             label="Create New Ticket" 
             onClick={onCreateTicket} 
+          />
+
+          <NavItem 
+            icon={HiOutlineUserGroup} 
+            label="Verify New Users" 
+            active={location.pathname === '/verify-users'}
+            onClick={() => {
+              if (onCloseModal) onCloseModal();
+              navigate('/verify-users');
+            }}
           />
         </div>
       </nav>
@@ -113,4 +126,4 @@ const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;

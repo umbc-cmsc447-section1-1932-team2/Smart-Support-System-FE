@@ -1,7 +1,8 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider, Protected } from "./context/AuthContext";
+import { AuthProvider, Protected, useAuth } from "./context/AuthContext";
+import UserLayout from './components/UserLayout';
 import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
@@ -10,7 +11,8 @@ import TicketDashboard from "./pages/TicketDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import UserSettings from './pages/UserSettings';
 import TicketChat from "./pages/TicketChat";
-import UserLayout from './components/UserLayout';
+import VerifyUsers from "./pages/VerifyUsers";
+
 
 
 function App() {
@@ -24,11 +26,11 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Protected> <UserLayout> <Dashboard /></UserLayout> </Protected>}/>
-          <Route path="/agent-dashboard" element={<Protected> <AgentDashboard /> </Protected>}/>
+          <Route path="/agent-dashboard" element={<Protected> <UserLayout> <AgentDashboard /> </UserLayout> </Protected>}/>
           <Route path="/account" element={<Protected> <UserLayout> <UserSettings /> </UserLayout> </Protected>}/>
-          <Route path="/view-tickets" element={<Protected> <TicketDashboard /> </Protected>}/>
+          <Route path="/view-tickets" element={<Protected> <UserLayout> <TicketDashboard /> </UserLayout> </Protected>}/>
           <Route path="/chat/:ticketId" element={<Protected> <TicketChat /> </Protected>}/>
-
+          <Route path="/verify-users" element={<Protected> <UserLayout> <VerifyUsers /> </UserLayout> </Protected>}/>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
