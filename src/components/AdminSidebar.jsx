@@ -7,7 +7,8 @@ import {
   HiOutlineCheckCircle,
   HiOutlineCog,
   HiOutlinePencilAlt,
-  HiOutlineUserGroup
+  HiOutlineUserGroup,
+  HiOutlineUserAdd
 } from 'react-icons/hi';
 
 const NavItem = ({ icon: Icon, label, active, badge, onClick, sub }) => (
@@ -80,7 +81,7 @@ const AdminSidebar = ({ onCreateTicket, onCloseModal, agentControls, tickets, cu
           <NavItem 
             sub 
             icon={HiOutlineInbox} 
-            label="My Active chats" 
+            label="My Active Chats" 
             active={isOnDashboard && agentControls?.currentTab === 'MY_TICKETS'}
             badge={activeChatsCount}
             onClick={() => handleTabSwitch('MY_TICKETS')} 
@@ -103,24 +104,36 @@ const AdminSidebar = ({ onCreateTicket, onCloseModal, agentControls, tickets, cu
           />
 
           <NavItem 
-            icon={HiOutlineUserGroup} 
+            icon={HiOutlineUserAdd} 
             label="Verify New Users" 
             active={location.pathname === '/verify-users'}
             onClick={() => {
-              if (onCloseModal) onCloseModal();
-              navigate('/verify-users');
+                if (onCloseModal) onCloseModal();
+                navigate('/verify-users');
             }}
           />
+
+          <NavItem 
+            icon={HiOutlineUserGroup} 
+            label="View Existing Users" 
+            active={location.pathname === '/existing-users'}
+            onClick={() => {
+                if (onCloseModal) onCloseModal();
+                navigate('/existing-users');
+            }}
+        />
+
         </div>
       </nav>
 
       <div className="pt-4 border-t border-slate-200">
         <NavItem 
           icon={HiOutlineCog} 
-          label="Account Management" 
+          label="Account Settings" 
           active={location.pathname === '/account'}
           onClick={() => navigate('/account')} 
         />
+
       </div>
     </aside>
   );

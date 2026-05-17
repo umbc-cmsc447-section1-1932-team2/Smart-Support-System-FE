@@ -12,6 +12,7 @@ import AgentDashboard from "./pages/AgentDashboard";
 import UserSettings from './pages/UserSettings';
 import TicketChat from "./pages/TicketChat";
 import VerifyUsers from "./pages/VerifyUsers";
+import ExistingUsers from "./pages/ExistingUsers";
 
 
 
@@ -26,11 +27,12 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Protected> <UserLayout> <Dashboard /></UserLayout> </Protected>}/>
-          <Route path="/agent-dashboard" element={<Protected> <UserLayout> <AgentDashboard /> </UserLayout> </Protected>}/>
+          <Route path="/agent-dashboard" element={<Protected allowedRoles={['AGENT', 'ADMIN']}> <UserLayout> <AgentDashboard /> </UserLayout> </Protected>}/>
           <Route path="/account" element={<Protected> <UserLayout> <UserSettings /> </UserLayout> </Protected>}/>
           <Route path="/view-tickets" element={<Protected> <UserLayout> <TicketDashboard /> </UserLayout> </Protected>}/>
           <Route path="/chat/:ticketId" element={<Protected> <TicketChat /> </Protected>}/>
-          <Route path="/verify-users" element={<Protected> <UserLayout> <VerifyUsers /> </UserLayout> </Protected>}/>
+          <Route path="/verify-users" element={<Protected allowedRoles={['ADMIN']}> <UserLayout> <VerifyUsers /> </UserLayout> </Protected>}/>
+          <Route path="/existing-users" element={<Protected allowedRoles={['ADMIN']}> <UserLayout> <ExistingUsers /> </UserLayout> </Protected>}/>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -104,7 +104,7 @@ const Sidebar = ({ onCreateTicket, onCloseModal, agentControls }) => {
       <div className="pt-4 border-t border-slate-200">
         <NavItem 
           icon={HiOutlineCog} 
-          label="Account Management" 
+          label="Account Settings" 
           active={location.pathname === '/account'}
           onClick={() => navigate('/account')} 
         />
