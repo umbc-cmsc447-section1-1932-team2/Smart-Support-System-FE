@@ -1,249 +1,388 @@
-import React, { useState } from 'react';
-import { HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
-import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import {
+  HiOutlineMail,
+  HiOutlineLockClosed,
+  HiOutlinePhone,
+  HiOutlineShieldCheck,
+} from "react-icons/hi";
+import { useAuth } from "../context/AuthContext";
 import { apiFetch } from "../utils/api";
+import { getNotifPrefs, setNotifPrefs } from "../utils/notifPrefs";
 
-const SettingsSection = ({ title, subtitle, icon: Icon, value, type, onUpdateSuccess }) => {
+const SectionCard = ({ title, subtitle, icon: Icon, currentValue, children }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const [emailData, setEmailData] = useState({ newEmail: '', confirmEmail: '', currentPassword: '' });
-  const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '', currentPassword: '' });
-
-  const handleInputChange = (e, field, formType) => {
-    if (formType === 'email') {
-      setEmailData({ ...emailData, [field]: e.target.value });
-    } else {
-      setPasswordData({ ...passwordData, [field]: e.target.value });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (type === 'email') {
-        if (!emailData.newEmail || !emailData.confirmEmail || !emailData.currentPassword) {
-          toast.error("Please fill in all email fields.");
-          setLoading(false);
-          return;
-        }
-        if (emailData.newEmail !== emailData.confirmEmail) {
-          toast.error("New email addresses do not match.");
-          setLoading(false);
-          return;
-        }
-
-        const response = await apiFetch('/user/profile', 'PATCH', {
-          email: emailData.newEmail,
-          currentPassword: emailData.currentPassword
-        });
-
-        const errorMsg = response?.message || response?.error || response?.data?.message || response?.data?.error;
-        const hasErrorStatus = response?.statusCode >= 400 || response?.status >= 400 || response?.success === false;
-
-        if (errorMsg || hasErrorStatus) {
-          setLoading(false);
-          return;
-        }
-
-        toast.success("Email updated successfully!");
-        
-        const updatedUser = response?.data || response;
-        if (onUpdateSuccess && updatedUser) {
-          onUpdateSuccess(updatedUser);
-        }
-        
-        setEmailData({ newEmail: '', confirmEmail: '', currentPassword: '' });
-      } else {
-        if (!passwordData.newPassword || !passwordData.confirmPassword || !passwordData.currentPassword) {
-          toast.error("Please fill in all password fields.");
-          setLoading(false);
-          return;
-        }
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-          toast.error("New passwords do not match.");
-          setLoading(false);
-          return;
-        }
-
-        const response = await apiFetch('/user/profile', 'PATCH', {
-          newPassword: passwordData.newPassword,
-          currentPassword: passwordData.currentPassword
-        });
-
-        const errorMsg = response?.message || response?.error || response?.data?.message || response?.data?.error;
-        const hasErrorStatus = response?.statusCode >= 400 || response?.status >= 400 || response?.success === false;
-
-        if (errorMsg || hasErrorStatus) {
-          setLoading(false);
-          return;
-        }
-
-        toast.success("Password updated successfully!");
-        setPasswordData({ newPassword: '', confirmPassword: '', currentPassword: '' });
-      }
-      setIsEditing(false);
-    } catch (error) {
-      console.error(`Failed to update ${type}:`, error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
-    <div className="mb-10 px-10">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold text-[#1e293b]">{title}</h3>
+    <div className="mb-6">
+      <div className="mb-3">
+        <h3 className="text-lg font-bold text-slate-800">{title}</h3>
         <p className="text-xs text-slate-400">{subtitle}</p>
       </div>
 
-      <div className="bg-[#f8faff] rounded-xl p-4 flex items-center justify-between border border-blue-50">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-400 border border-orange-100">
+      <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between border border-slate-100">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 border border-blue-100 shrink-0">
             <Icon className="text-xl" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">
-              Active {type}
+              Current
             </p>
-            <p className="text-sm font-bold text-slate-700">{value}</p>
+            <p className="text-sm font-bold text-slate-700 truncate">
+              {currentValue || "—"}
+            </p>
           </div>
         </div>
-        
-        <button 
-          onClick={() => setIsEditing(!isEditing)}
-          className="px-8 py-2 bg-[#7691d4] hover:bg-[#5f79be] text-white text-sm font-bold rounded-md transition-colors"
+
+        <button
+          onClick={() => setIsEditing((v) => !v)}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-md transition-colors shrink-0 ml-3"
         >
-          {isEditing ? 'Cancel' : 'Edit'}
+          {isEditing ? "Cancel" : "Edit"}
         </button>
       </div>
 
       {isEditing && (
-        <form onSubmit={handleSubmit} className="mt-4 p-6 bg-white border border-slate-100 rounded-xl shadow-sm">
-          <div className="space-y-4 max-w-md">
-            
-            {type === 'email' && (
-              <>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 px-1">New Email Address</label>
-                  <input 
-                    type="email"
-                    value={emailData.newEmail}
-                    onChange={(e) => handleInputChange(e, 'newEmail', 'email')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Enter new email address"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 px-1">Confirm New Email Address</label>
-                  <input 
-                    type="email"
-                    value={emailData.confirmEmail}
-                    onChange={(e) => handleInputChange(e, 'confirmEmail', 'email')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Confirm new email address"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-[#1e4eb8] uppercase mb-1 px-1">Current Password</label>
-                  <input 
-                    type="password"
-                    value={emailData.currentPassword}
-                    onChange={(e) => handleInputChange(e, 'currentPassword', 'email')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Enter current password to verify"
-                  />
-                </div>
-              </>
-            )}
-
-            {type === 'password' && (
-              <>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 px-1">New Password</label>
-                  <input 
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => handleInputChange(e, 'newPassword', 'password')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Enter new password"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 px-1">Confirm New Password</label>
-                  <input 
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => handleInputChange(e, 'confirmPassword', 'password')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Repeat new password"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-[#1e4eb8] uppercase mb-1 px-1">Current Password</label>
-                  <input 
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => handleInputChange(e, 'currentPassword', 'password')}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                    placeholder="Enter current password to verify"
-                  />
-                </div>
-              </>
-            )}
-
-            <button 
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 mt-2 bg-[#1e4eb8] hover:bg-[#163a8a] text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : `Update ${type === 'email' ? 'Email' : 'Password'}`}
-            </button>
-          </div>
-        </form>
+        <div className="mt-3 p-5 bg-white border border-slate-100 rounded-xl shadow-sm animate-in slide-in-from-top-2 duration-200">
+          {children({ close: () => setIsEditing(false) })}
+        </div>
       )}
     </div>
   );
 };
 
-const AccountSettings = () => {
-  const { user, login } = useAuth();
+const Field = ({ label, ...rest }) => (
+  <div>
+    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 px-1">
+      {label}
+    </label>
+    <input
+      {...rest}
+      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
+    />
+  </div>
+);
 
-  const handleUserUpdate = (updatedUser) => {
-    if (updatedUser) {
-      login({ ...user, ...updatedUser });
+const SubmitButton = ({ loading, children }) => (
+  <button
+    type="submit"
+    disabled={loading}
+    className="w-full py-3 mt-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-lg text-sm transition-colors"
+  >
+    {loading ? "Saving…" : children}
+  </button>
+);
+
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+const useProfilePatch = () => {
+  const { updateUser } = useAuth();
+  return async (body) => {
+    const res = await apiFetch("/user/profile", "PATCH", body);
+    if (res.ok && res.data) {
+      const { id, email, username, phone, role, verification } = res.data;
+      updateUser({ id, email, username, phone, role, verification });
+    }
+    return res;
+  };
+};
+
+const EmailForm = ({ close, currentEmail }) => {
+  const patch = useProfilePatch();
+  const [email, setEmail] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!isEmail(email)) return toast.error("Enter a valid email address");
+    if (email !== confirm) return toast.error("Emails don't match");
+    if (email === currentEmail) return toast.error("That's your current email");
+
+    setLoading(true);
+    const res = await patch({ email });
+    setLoading(false);
+    if (res.ok) {
+      toast.success("Email updated");
+      close();
     }
   };
 
   return (
-    <div className="w-full flex justify-start"> 
-      <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[90vh] mt-4 ml-4">
-        
-        <div className="p-10 pb-6">
-          <h1 className="text-3xl font-black text-[#1e293b] mb-6">Account Settings</h1>
-          <hr className="border-slate-100" />
+    <form onSubmit={submit} className="space-y-4 max-w-md">
+      <Field
+        label="New email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        autoComplete="email"
+        required
+      />
+      <Field
+        label="Confirm new email"
+        type="email"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        placeholder="Repeat new email"
+        required
+      />
+      <SubmitButton loading={loading}>Update email</SubmitButton>
+    </form>
+  );
+};
+
+const PhoneForm = ({ close, currentPhone }) => {
+  const patch = useProfilePatch();
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const trimmed = phone.trim();
+    if (trimmed.length < 7) return toast.error("Enter a valid phone number");
+    if (trimmed === currentPhone) return toast.error("That's your current phone");
+
+    setLoading(true);
+    const res = await patch({ phone: trimmed });
+    setLoading(false);
+    if (res.ok) {
+      toast.success("Phone updated");
+      close();
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4 max-w-md">
+      <Field
+        label="New phone number"
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="+1 555 123 4567"
+        autoComplete="tel"
+        required
+      />
+      <SubmitButton loading={loading}>Update phone</SubmitButton>
+    </form>
+  );
+};
+
+const PasswordForm = ({ close }) => {
+  const patch = useProfilePatch();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 6)
+      return toast.error("New password must be at least 6 characters");
+    if (newPassword !== confirm) return toast.error("Passwords don't match");
+    if (!currentPassword) return toast.error("Current password is required");
+
+    setLoading(true);
+    const res = await patch({ currentPassword, newPassword });
+    setLoading(false);
+    if (res.ok) {
+      toast.success("Password updated");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirm("");
+      close();
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4 max-w-md">
+      <Field
+        label="New password"
+        type="password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        placeholder="At least 6 characters"
+        autoComplete="new-password"
+        required
+      />
+      <Field
+        label="Confirm new password"
+        type="password"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        placeholder="Repeat new password"
+        autoComplete="new-password"
+        required
+      />
+      <Field
+        label="Current password"
+        type="password"
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+        placeholder="Enter your current password"
+        autoComplete="current-password"
+        required
+      />
+      <SubmitButton loading={loading}>Update password</SubmitButton>
+    </form>
+  );
+};
+
+const Toggle = ({ checked, onChange, label, sub }) => (
+  <label className="flex items-center justify-between gap-4 py-3 cursor-pointer">
+    <div className="min-w-0">
+      <p className="text-sm font-bold text-slate-700">{label}</p>
+      <p className="text-xs text-slate-400">{sub}</p>
+    </div>
+    <span
+      onClick={(e) => {
+        e.preventDefault();
+        onChange(!checked);
+      }}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+        checked ? "bg-blue-600" : "bg-slate-300"
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+          checked ? "translate-x-5" : "translate-x-0.5"
+        }`}
+      />
+    </span>
+  </label>
+);
+
+const NotificationSettings = () => {
+  const [prefs, setPrefs] = useState(getNotifPrefs);
+
+  useEffect(() => {
+    const handler = (e) => setPrefs(e.detail);
+    window.addEventListener("notif-prefs:changed", handler);
+    return () => window.removeEventListener("notif-prefs:changed", handler);
+  }, []);
+
+  const update = async (key, value) => {
+    if (
+      key === "os" &&
+      value &&
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default"
+    ) {
+      const result = await Notification.requestPermission().catch(() => "denied");
+      if (result !== "granted") {
+        toast.error("Browser denied notification permission");
+        return;
+      }
+    }
+    setNotifPrefs({ [key]: value });
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="mb-3">
+        <h3 className="text-lg font-bold text-slate-800">Notifications</h3>
+        <p className="text-xs text-slate-400">
+          Choose how you want to be alerted about new messages.
+        </p>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 divide-y divide-slate-200">
+        <Toggle
+          checked={prefs.toast}
+          onChange={(v) => update("toast", v)}
+          label="In-app toasts"
+          sub="Show a small banner when a new message arrives while you're using the app."
+        />
+        <Toggle
+          checked={prefs.os}
+          onChange={(v) => update("os", v)}
+          label="Desktop notifications"
+          sub="Pop up a system notification when the tab is in the background."
+        />
+      </div>
+    </div>
+  );
+};
+
+const VerificationBadge = ({ verification }) => {
+  if (verification === "VERIFIED") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+        <HiOutlineShieldCheck className="text-sm" /> Verified
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+      Pending verification
+    </span>
+  );
+};
+
+const AccountSettings = () => {
+  const { user } = useAuth();
+
+  return (
+    <div className="w-full flex justify-start">
+      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-sm border border-slate-100 min-h-[90vh] mt-4 ml-4">
+        <div className="p-10 pb-6 border-b border-slate-100">
+          <h1 className="text-3xl font-black text-slate-800 mb-4">
+            Account Settings
+          </h1>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-linear-to-tr from-blue-600 to-indigo-500 text-white rounded-full flex items-center justify-center font-black text-xl shadow-md">
+              {user?.username?.charAt(0).toUpperCase() || "?"}
+            </div>
+            <div>
+              <p className="text-lg font-bold text-slate-800">
+                {user?.username || "User"}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                  {user?.role || "USER"}
+                </span>
+                {user?.verification && (
+                  <VerificationBadge verification={user.verification} />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="py-6">
-          <SettingsSection 
-            title="Change email"
-            subtitle="Replace the email address associated with this account."
+        <div className="p-10 pt-8">
+          <SectionCard
+            title="Email address"
+            subtitle="Used for sign-in and account communications."
             icon={HiOutlineMail}
-            value={user?.email || "user@gmail.com"}
-            type="email"
-            onUpdateSuccess={handleUserUpdate}
-          />
+            currentValue={user?.email}
+          >
+            {({ close }) => (
+              <EmailForm close={close} currentEmail={user?.email} />
+            )}
+          </SectionCard>
 
-          <SettingsSection 
-            title="Change password"
-            subtitle="Keep your account secure by updating your password."
+          <SectionCard
+            title="Phone number"
+            subtitle="Optional. Used for contact only — never displayed publicly."
+            icon={HiOutlinePhone}
+            currentValue={user?.phone}
+          >
+            {({ close }) => (
+              <PhoneForm close={close} currentPhone={user?.phone} />
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Password"
+            subtitle="Keep your account secure by updating your password regularly."
             icon={HiOutlineLockClosed}
-            value="********"
-            type="password"
-          />
+            currentValue="••••••••"
+          >
+            {({ close }) => <PasswordForm close={close} />}
+          </SectionCard>
+
+          <NotificationSettings />
         </div>
       </div>
     </div>

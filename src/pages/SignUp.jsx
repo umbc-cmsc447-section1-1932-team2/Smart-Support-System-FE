@@ -87,6 +87,8 @@ function SignUp() {
             type="date"
             value={form.dob}
             onChange={update}
+            min="1960-01-01"
+            max="2020-12-31"
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -96,6 +98,8 @@ function SignUp() {
               value={form.email}
               onChange={update}
               required
+              pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+              title="Please enter a valid email address."
             />
             <Input
               label="Verify Email"
@@ -112,6 +116,9 @@ function SignUp() {
               value={form.password}
               onChange={update}
               required
+              minLength={6}
+              pattern="^(?=.*[0-9]).{6,}$"
+              title="Password must be at least 6 characters long and contain at least one number."
             />
             <Input
               label="Verify Password"

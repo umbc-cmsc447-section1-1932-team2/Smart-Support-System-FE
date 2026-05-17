@@ -66,7 +66,7 @@ const ExistingUsers = () => {
 
   return (
     <div className="w-full flex justify-start animate-in fade-in duration-500"> 
-      <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[90vh] mt-4 ml-4 flex flex-col">
+      <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[60vh] mt-4 ml-4 flex flex-col">
         
         <div className="p-10 pb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

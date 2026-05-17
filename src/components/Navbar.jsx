@@ -4,12 +4,16 @@ import Button from "./Buttons";
 import logo from "../assets/logo.png";
 import { FaRegUserCircle } from "react-icons/fa";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { IoPersonOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
+import {
+  IoPersonOutline,
+  IoSettingsOutline,
+  IoLogOutOutline,
+} from "react-icons/io5";
 import { useAuth } from "../context/AuthContext";
 import { apiFetch } from "../utils/api";
 
 const MENU_ITEMS = [
-  { label: "Profile", icon: IoPersonOutline, to: "/profile" },
+  // { label: "Profile", icon: IoPersonOutline, to: "/profile" },
   { label: "Settings", icon: IoSettingsOutline, to: "/account" },
 ];
 
@@ -21,14 +25,15 @@ function Navbar() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleLogout = async () => {
-    await apiFetch("/auth/logout", "POST", { refreshToken: user.refreshToken });
+    await apiFetch("/auth/logout", "POST", { accessToken: user.accessToken });
     logout();
     navigate("/login");
   };
@@ -39,20 +44,24 @@ function Navbar() {
         <img src={logo} className="h-[4em]" />
         <div className="leading-tight">
           <p className="font-black text-secondary text-sm uppercase">Smart</p>
-          <p className="text-[9px] text-gray-400 uppercase font-medium">Support System</p>
+          <p className="text-[9px] text-gray-400 uppercase font-medium">
+            Support System
+          </p>
         </div>
       </Link>
 
       <div className="flex items-center gap-3">
         {user ? (
           <>
-            <IoIosNotificationsOutline className="text-3xl text-primary cursor-pointer" />
+            {/* <IoIosNotificationsOutline className="text-3xl text-primary cursor-pointer" /> */}
             <div ref={menuRef} className="relative">
               <button
                 onClick={() => setOpen((o) => !o)}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
-                <span className="text-sm font-bold text-gray-700">{user.username}</span>
+                <span className="text-sm font-bold text-gray-700">
+                  {user.username}
+                </span>
                 <FaRegUserCircle className="text-3xl text-primary" />
               </button>
 
@@ -84,10 +93,14 @@ function Navbar() {
         ) : (
           <>
             <Link to="/login">
-              <Button variant="outline" size="medium">Login</Button>
+              <Button variant="outline" size="medium">
+                Login
+              </Button>
             </Link>
             <Link to="/signup">
-              <Button variant="filled" size="medium">Sign Up</Button>
+              <Button variant="filled" size="medium">
+                Sign Up
+              </Button>
             </Link>
           </>
         )}
