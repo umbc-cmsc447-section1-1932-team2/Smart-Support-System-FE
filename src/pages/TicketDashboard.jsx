@@ -17,6 +17,21 @@ const TicketDashboard = () => {
     navigate
   } = useTicketDashboard();
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const URLTab = params.get('tab');
+    if (URLTab && URLTab !== currentTab) {
+      setCurrentTab(URLTab);
+    }
+  }, [window.location.search, currentTab, setCurrentTab]);
+
+  const agentControls = {
+    currentTab,
+    setCurrentTab,
+    ticketCount: myTickets.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length,
+    clearChat: () => {} // Fallback empty handler since user views map to page links directly
+  };
+
   const getSidebarStyle = (tabName) => currentTab === tabName 
     ? "flex items-center gap-3 px-4 py-3 text-primary bg-white shadow-sm font-semibold rounded-xl cursor-pointer border border-gray-100 transition-all"
     : "flex items-center gap-3 px-4 py-3 text-gray-600 font-medium rounded-xl cursor-pointer hover:bg-white hover:text-primary hover:shadow-sm hover:scale-105 transition-all duration-300";

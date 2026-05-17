@@ -21,9 +21,25 @@ const AgentDashboard = () => {
     selectedTicketId, setSelectedTicketId 
   } = useAgentDashboard();
 
+  React.useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const URLTab = params.get('tab');
+  if (URLTab && URLTab !== currentTab) {
+    setCurrentTab(URLTab);
+  }
+}, [window.location.search, currentTab, setCurrentTab]);
+
   const chatProps = useTicketChat(selectedTicketId);
 
+  const agentControls = {
+    currentTab,
+    setCurrentTab,
+    ticketCount: displayTickets.length,
+    clearChat: () => setSelectedTicketId(null)
+  };
+
   return (
+    
     <div className="flex h-screen w-full overflow-hidden bg-[#F8FAFC] font-sans">
       
       {/* =========================================
@@ -67,7 +83,6 @@ const AgentDashboard = () => {
         <div className="flex-1 flex overflow-hidden animate-in slide-in-from-right-8 duration-300">
           
           {/* PANE 1: Compact Ticket Queue (Left) */}
-          {/* We map your real displayTickets here so you don't lose context! */}
           <div className="w-[320px] bg-white border-r border-slate-200 flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
             <div className="p-5 border-b border-slate-100 bg-slate-50/50">
               <h2 className="text-sm font-bold tracking-wider text-slate-500 uppercase flex items-center justify-between">
@@ -131,7 +146,6 @@ const AgentDashboard = () => {
 
           {/* PANE 3: Action Context (Right) */}
           <div className="w-[320px] bg-white border-l border-slate-200 flex flex-col shrink-0 overflow-y-auto shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-10">
-            {/* Your existing TicketSidebar drops perfectly in here! */}
             <TicketSidebar ticket={chatProps.ticket} />
           </div>
 
