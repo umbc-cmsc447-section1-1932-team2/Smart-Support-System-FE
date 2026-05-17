@@ -16,12 +16,12 @@ const UserStats = ({ tickets = [] }) => {
       {statCards.map((stat, i) => (
         <div 
           key={i} 
-          className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between h-40 transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
+          className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex  justify-between items-center h-10 transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
         >
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {stat.label}
           </p>
-          <p className={`text-5xl font-black ${stat.color}`}>
+          <p className={`text-3xl font-black ${stat.color}`}>
             {stat.value}
           </p>
         </div>

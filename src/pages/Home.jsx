@@ -1,7 +1,9 @@
 import Navbar from "../components/Navbar";
 import Button from "../components/Buttons";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col bg-offwhite">
       <Navbar />
@@ -18,14 +20,13 @@ function Home() {
           responses, and delight your customers at every interaction
         </p>
 
-        <Button 
-          variant="filled" 
-          size="big" 
-          onClick={() => navigate('/login')}
+        <Button
+          variant="filled"
+          size="big"
+          onClick={() => navigate("/dashboard")}
         >
           Get started
         </Button>
-
       </main>
       <footer className="py-4 text-center text-sm text-primary border-t border-gray-200">
         Project by Team 2

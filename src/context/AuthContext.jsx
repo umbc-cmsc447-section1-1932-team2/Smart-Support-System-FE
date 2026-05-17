@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
@@ -19,8 +19,28 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (partial) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...partial };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const onRefreshed = (e) => setUser(e.detail);
+    const onForcedLogout = () => setUser(null);
+    window.addEventListener("auth:tokens-refreshed", onRefreshed);
+    window.addEventListener("auth:logout", onForcedLogout);
+    return () => {
+      window.removeEventListener("auth:tokens-refreshed", onRefreshed);
+      window.removeEventListener("auth:logout", onForcedLogout);
+    };
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -28,16 +48,14 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => useContext(AuthContext);
 
-export function Protected({ children, allowedRoles }) {
+const homeForRole = (role) =>
+  role === "AGENT" || role === "ADMIN" ? "/agent-dashboard" : "/dashboard";
+
+export function Protected({ children, roles }) {
   const { user } = useAuth();
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to={homeForRole(user.role)} replace />;
   }
-
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return children;
 }

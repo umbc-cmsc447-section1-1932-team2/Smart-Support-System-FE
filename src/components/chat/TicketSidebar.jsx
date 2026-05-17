@@ -1,36 +1,37 @@
 import React, { useState } from 'react';
 import { Mail, Clock, CheckCircle, ChevronDown, User } from 'lucide-react';
-import { apiFetch } from '../../utils/api';
+import { apiFetch, BASE_URL } from '../../utils/api';
 import { io } from 'socket.io-client';
+import {
+  STATUS_ORDER,
+  STATUS_META,
+  getStatusMeta,
+} from '../../utils/ticketStatus';
 
 const TicketSidebar = ({ ticket, onStatusUpdate }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const currentStatus = ticket?.status || 'OPEN';
+  const meta = getStatusMeta(currentStatus);
 
 const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
     setIsUpdating(true);
     try {
-      await apiFetch(`/ticket/${ticket.id}`, 'PATCH', { status: newStatus });
-      
-      const tempSocket = io('http://localhost:3000');
+      const res = await apiFetch(`/ticket/${ticket.id}`, 'PATCH', {
+        status: newStatus,
+      });
+
+      const tempSocket = io(BASE_URL);
       tempSocket.emit('triggerDashboardUpdate');
       tempSocket.disconnect();
 
-      if (onStatusUpdate) onStatusUpdate(ticket.id, newStatus);
+      if (res.ok && onStatusUpdate) onStatusUpdate(ticket.id, newStatus);
     } catch (error) {
       console.error("Failed to update status", error);
     } finally {
       setIsUpdating(false);
     }
-  };
-
-const statusColors = {
-    OPEN: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200',
-    RESOLVED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    CLOSED_NOT_RESOLVED: 'bg-slate-100 text-slate-600 border-slate-300',
   };
 
   if (!ticket) return null;
@@ -46,15 +47,16 @@ const statusColors = {
         
         <div className="relative">
           <select
-            value={currentStatus}
+            value={STATUS_META[currentStatus] ? currentStatus : 'OPEN'}
             onChange={handleStatusChange}
             disabled={isUpdating}
-            className={`w-full appearance-none font-bold text-sm px-5 py-4 rounded-xl border-2 outline-none cursor-pointer transition-all shadow-sm ${statusColors[currentStatus]} ${isUpdating ? 'opacity-50' : 'hover:brightness-95'}`}
+            className={`w-full appearance-none font-bold text-sm px-5 py-4 rounded-xl border-2 outline-none cursor-pointer transition-all shadow-sm ${meta.badgeSoft} ${isUpdating ? 'opacity-50' : 'hover:brightness-95'}`}
           >
-            <option value="OPEN">🟢 Open - Needs Assignment</option>
-            <option value="IN_PROGRESS">🔵 In Progress - Working</option>
-            <option value="RESOLVED">🟣 Resolved - Solution Provided</option>
-            <option value="CLOSED_NOT_RESOLVED">⚫ Closed - Not Resolved</option> 
+            {STATUS_ORDER.map((key) => (
+              <option key={key} value={key}>
+                {STATUS_META[key].icon} {STATUS_META[key].label}
+              </option>
+            ))}
           </select>
           
           <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isUpdating ? 'text-slate-300' : 'text-slate-500'}`} size={20} />

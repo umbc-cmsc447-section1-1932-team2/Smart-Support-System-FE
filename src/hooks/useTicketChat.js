@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; 
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { BASE_URL } from "../utils/api";
+import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
-import { io } from 'socket.io-client';
-
-import { apiFetch } from '../utils/api';
+import { apiFetch } from "../utils/api";
+import { getNotifPrefs } from "../utils/notifPrefs";
 
 export const useTicketChat = (inlineTicketId = null) => {
-
   const { ticketId: routeTicketId } = useParams();
 
   const ticketId = inlineTicketId || routeTicketId;
@@ -15,109 +16,124 @@ export const useTicketChat = (inlineTicketId = null) => {
 
   const [messages, setMessages] = useState([]);
 
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const socketRef = useRef();
 
   const scrollRef = useRef();
 
-  const ticketTitleRef = useRef('Case');
+  const ticketTitleRef = useRef("Case");
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleBackNavigation = () => {
+    const isAgent =
+      currentUser.role === "AGENT" || currentUser.role === "ADMIN";
+    const targetRoute = isAgent ? "/agent-dashboard" : "/dashboard";
 
-    const targetRoute = currentUser.role === 'AGENT' ? '/agent-dashboard' : '/view-tickets';
-
-    navigate(targetRoute, { state: { activeTab: 'MY_TICKETS' } });
+    navigate(targetRoute, { state: { activeTab: "MY_TICKETS" } });
   };
 
   useEffect(() => {
-
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
     if (!ticketId) {
-
       setTicket(null);
 
       setMessages([]);
 
-      ticketTitleRef.current = 'Case';
+      ticketTitleRef.current = "Case";
       return;
     }
 
- const loadTicketData = async () => {
+    const loadTicketData = async () => {
       try {
-
         const payload = await apiFetch(`/ticket/${ticketId}`);
-        
+
         const activeTicket = payload?.data || payload;
 
         if (activeTicket) {
-
           setTicket(activeTicket);
 
-          ticketTitleRef.current = activeTicket.title || 'Case';
-          
+          ticketTitleRef.current = activeTicket.title || "Case";
+
           const history = activeTicket.messages || [];
 
           setMessages(history);
         }
-
       } catch (err) {
-
         console.error("Failed loading ticket metadata info:", err);
       }
     };
 
-
     loadTicketData();
 
-    socketRef.current = io('http://localhost:3000', {
-      auth: { token: currentUser.accessToken }
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default" &&
+      getNotifPrefs().os
+    ) {
+      Notification.requestPermission().catch(() => {});
+    }
+
+    socketRef.current = io(BASE_URL, {
+      auth: { token: currentUser.accessToken },
     });
 
-    socketRef.current.emit('joinTicket', { ticketId, userId: currentUser.id });
+    socketRef.current.emit("joinTicket", { ticketId, userId: currentUser.id });
 
-    socketRef.current.on('newMessage', (msg) => {
-
+    socketRef.current.on("newMessage", (msg) => {
       setMessages((prev) => [...prev, msg]);
+
+      const isOwnMessage = String(msg.senderId) === String(currentUser.id);
+      if (isOwnMessage) return;
+
+      const senderLabel =
+        msg.sender?.username ||
+        (currentUser.role === "USER" ? "Support" : "Customer");
+      const preview =
+        msg.content?.length > 60
+          ? `${msg.content.slice(0, 60)}…`
+          : msg.content || "";
+
+      const prefs = getNotifPrefs();
 
       if (document.hidden) {
         setUnreadCount((prev) => {
           const nextCount = prev + 1;
-
           document.title = `🔔 (${nextCount}) New Message`;
-
           return nextCount;
-        }); 
-        
-        if (Notification.permission === "granted") {
+        });
 
-          new Notification(`New message regarding ${ticketTitleRef.current}`, {
-
+        if (
+          prefs.os &&
+          typeof Notification !== "undefined" &&
+          Notification.permission === "granted"
+        ) {
+          new Notification(`New message — ${ticketTitleRef.current}`, {
             body: msg.content,
-
-            icon: '/logo.png'
-
+            icon: "/logo.png",
           });
         }
+      } else if (prefs.toast) {
+        toast(`${senderLabel}: ${preview}`, {
+          icon: "💬",
+          duration: 4000,
+        });
       }
     });
 
     const handleVisibility = () => {
       if (!document.hidden) {
-
         document.title = "Smart Support System";
 
-        setUnreadCount(0); 
+        setUnreadCount(0);
       }
     };
 
@@ -125,63 +141,61 @@ export const useTicketChat = (inlineTicketId = null) => {
 
     return () => {
       if (socketRef.current) {
-
-        socketRef.current.off('newMessage'); 
+        socketRef.current.off("newMessage");
 
         socketRef.current.disconnect();
       }
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-    
-  }, [ticketId, currentUser.accessToken, currentUser.id]); 
+  }, [ticketId, currentUser.accessToken, currentUser.id]);
+
+  const updateTicketLocal = (partial) => {
+    setTicket((prev) => (prev ? { ...prev, ...partial } : prev));
+  };
 
   const handleSend = (e, directTextValue = null) => {
-
     if (e?.preventDefault) e.preventDefault();
-    
+
     const textToSend = directTextValue !== null ? directTextValue : newMessage;
     if (!textToSend?.trim()) return;
 
-    
     if (!socketRef.current) {
-
       console.error("Socket instance connection unavailable.");
       return;
     }
 
-    socketRef.current.emit('sendMessage', { 
-      ticketId, 
+    socketRef.current.emit("sendMessage", {
+      ticketId,
 
-      senderId: currentUser.id, 
+      senderId: currentUser.id,
 
-      content: textToSend.trim() 
-
+      content: textToSend.trim(),
     });
-    
-    setNewMessage('');
+
+    setNewMessage("");
   };
 
-  return { 
-
+  return {
     ticketId,
 
-    ticket, 
+    ticket,
 
-    messages, 
+    messages,
 
     newMessage,
 
-    setNewMessage, 
+    setNewMessage,
 
-    currentUser, 
+    currentUser,
 
-    scrollRef, 
+    scrollRef,
 
-    handleSend, 
+    handleSend,
 
-    handleBackNavigation, 
+    handleBackNavigation,
 
-    unreadCount 
-    
+    unreadCount,
+
+    updateTicketLocal,
   };
 };

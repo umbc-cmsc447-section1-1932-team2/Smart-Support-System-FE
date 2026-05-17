@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { HiOutlineUserCircle } from 'react-icons/hi';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { HiOutlineUserCircle } from "react-icons/hi";
+import toast from "react-hot-toast";
 import { apiFetch } from "../utils/api";
 
 const VerifyUsers = () => {
@@ -10,12 +10,15 @@ const VerifyUsers = () => {
   useEffect(() => {
     const fetchPendingUsers = async () => {
       try {
-        const response = await apiFetch('/user/all');
-        const userArray = response?.data || (Array.isArray(response) ? response : []);
-        
+        const response = await apiFetch("/user/all");
+        const userArray =
+          response?.data || (Array.isArray(response) ? response : []);
+
         if (Array.isArray(userArray)) {
           const pendingStaff = userArray.filter(
-            user => user.verification === 'UNVERIFIED' && (user.role === 'AGENT' || user.role === 'ADMIN')
+            (user) =>
+              user.verification === "UNVERIFIED" &&
+              (user.role === "AGENT" || user.role === "ADMIN"),
           );
           setUsers(pendingStaff);
         } else {
@@ -34,10 +37,10 @@ const VerifyUsers = () => {
 
   const handleVerify = async (userId) => {
     const previousUsers = [...users];
-    setUsers(users.filter(user => user.id !== userId));
-    
+    setUsers(users.filter((user) => user.id !== userId));
+
     try {
-      await apiFetch(`/user/${userId}/verify`, 'PATCH');
+      await apiFetch(`/user/${userId}/verify`, "PATCH");
       toast.success("Account successfully verified!");
     } catch (error) {
       console.error("Verification backend sync issue:", error);
@@ -48,25 +51,27 @@ const VerifyUsers = () => {
 
   const handleDeny = async (userId) => {
     const previousUsers = [...users];
-    setUsers(users.filter(user => user.id !== userId));
-    
+    setUsers(users.filter((user) => user.id !== userId));
+
     try {
-      await apiFetch(`/user/${userId}`, 'DELETE');
-      toast.success("Registration request denied. Account removed from system.");
+      await apiFetch(`/user/${userId}`, "DELETE");
+      toast.success(
+        "Registration request denied. Account removed from system.",
+      );
     } catch (error) {
       console.error("Account deletion backend sync issue:", error);
       setUsers(previousUsers);
       toast.error("Could not delete account from server.");
     }
   };
-
   return (
-    <div className="w-full flex justify-start"> 
-      <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[90vh] mt-4 ml-4 flex flex-col">
-        
+    <div className=" ">
+      <div className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[20vh] mt-4 ml-4 flex flex-col">
         <div className="p-10 pb-6">
-          <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-3xl font-black text-[#1e293b]">Staff Verification</h1>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <h1 className="text-xl font-black text-[#1e293b]">
+              Staff Verification
+            </h1>
             <span className="bg-blue-50 text-[#1e4eb8] text-xs font-black px-3 py-1 rounded-full border border-blue-100">
               {users.length} Pending
             </span>
@@ -74,7 +79,7 @@ const VerifyUsers = () => {
           <hr className="border-slate-100" />
         </div>
 
-        <div className="flex-grow overflow-y-auto px-10 pb-10">
+        <div className=" overflow-y-auto px-10 pb-10">
           <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
             <div className="max-h-[55vh] overflow-y-auto divide-y divide-slate-100">
               {loading ? (
@@ -83,42 +88,52 @@ const VerifyUsers = () => {
                 </div>
               ) : users.length === 0 ? (
                 <div className="p-16 text-center">
-                  <p className="text-slate-400 font-bold text-base">All clear!</p>
-                  <p className="text-gray-400 text-xs mt-1">No agent or admin applications are currently pending.</p>
+                  <p className="text-slate-400 font-bold text-base">
+                    All clear!
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    No agent or admin applications are currently pending.
+                  </p>
                 </div>
               ) : (
                 users.map((user) => (
-                  <div 
-                    key={user.id} 
+                  <div
+                    key={user.id}
                     className="flex items-center justify-between px-8 py-6 transition-colors hover:bg-slate-50/30"
                   >
                     <div className="flex items-center gap-4 min-w-0">
-                      <HiOutlineUserCircle className="text-4xl text-slate-300 flex-shrink-0" />
+                      <HiOutlineUserCircle className="text-3xl text-black " />
                       <div className="truncate">
                         <div className="flex items-center gap-2">
-                          <p className="font-black text-slate-900 text-sm truncate">{user.name || user.username}</p>
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
-                            user.role === 'ADMIN' 
-                              ? 'bg-red-50 text-red-600' 
-                              : 'bg-amber-50 text-amber-600'
-                          }`}>
+                          <p className=" text-slate-900 text-md truncate">
+                            {user.name || user.username}
+                          </p>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
+                              user.role === "ADMIN"
+                                ? "bg-black/10 text-green-600"
+                                : "bg-black/10 text-amber-600"
+                            }`}
+                          >
                             {user.role}
                           </span>
                         </div>
-                        <p className="text-gray-400 text-[11px] font-medium mt-0.5 truncate">{user.email}</p>
+                        <p className="text-gray-400 text-[11px] font-medium mt-0.5 truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                      <button 
+                    <div className="flex items-center gap-3">
+                      <button
                         onClick={() => handleVerify(user.id)}
-                        className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold rounded-xl transition-all active:scale-[0.98]"
+                        className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border text-sm rounded-xl transition-all active:scale-[0.98]"
                       >
                         Approve
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeny(user.id)}
-                        className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition-all active:scale-[0.98]"
+                        className="px-4 py-2 bg-red-50 hover:bg-red-100 border text-red-600 text-sm  rounded-xl transition-all active:scale-[0.98]"
                       >
                         Deny
                       </button>
@@ -129,7 +144,6 @@ const VerifyUsers = () => {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

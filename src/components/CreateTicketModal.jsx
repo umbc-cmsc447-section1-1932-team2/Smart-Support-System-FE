@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { X, Paperclip } from 'lucide-react';
-import { apiFetch } from '../utils/api'; 
+import React, { useState } from "react";
+import { X, Paperclip } from "lucide-react";
+import { apiFetch } from "../utils/api";
 
 const CreateTicketModal = ({ isOpen, onClose }) => {
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('TECHNICAL');
-  const [priority, setPriority] = useState('MEDIUM');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("TECHNICAL");
+  const [priority, setPriority] = useState("MEDIUM");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const response = await apiFetch('/ticket/', 'POST', {
+    const response = await apiFetch("/ticket/", "POST", {
       title,
       category,
       priority,
@@ -23,24 +23,28 @@ const handleSubmit = async (e) => {
     });
 
     if (response.ok) {
-      setTitle('');
-      setCategory('TECHNICAL');
-      setPriority('MEDIUM');
-      setDescription('');
-      onClose(); 
+      window.dispatchEvent(
+        new CustomEvent("ticket:created", { detail: response.data }),
+      );
+      setTitle("");
+      setCategory("TECHNICAL");
+      setPriority("MEDIUM");
+      setDescription("");
+      onClose();
     }
-    
+
     setIsSubmitting(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-[5px] flex justify-center items-center z-50 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
-        
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <h3 className="text-lg font-bold text-gray-900">Create New Ticket</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
@@ -48,21 +52,25 @@ const handleSubmit = async (e) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Ticket Title</label>
-            <input 
-              type="text" 
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Ticket Title
+            </label>
+            <input
+              type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="E.g., Cannot connect to database" 
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all" 
+              placeholder="E.g., Cannot connect to database"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all"
             />
           </div>
 
           {/* Category and Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Category
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -76,7 +84,9 @@ const handleSubmit = async (e) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Priority</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Priority
+              </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
@@ -91,44 +101,51 @@ const handleSubmit = async (e) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-            <textarea 
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Description
+            </label>
+            <p className="text-sm text-gray-500">
+              {description.length}/200 characters
+            </p>
+            <textarea
               required
               rows="6"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide details about the issue..." 
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all resize-none" 
+              placeholder="Provide details about the issue..."
+              minLength={200}
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:border-none focus:bg-white transition-all resize-none"
             ></textarea>
           </div>
 
           {/* Actions */}
           <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-            
-            <button type="button" className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors">
+            <button
+              type="button"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+            >
               <Paperclip size={16} />
               <span>Attach File</span>
             </button>
 
             <div className="flex gap-3">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={onClose}
                 className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSubmitting}
                 className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all disabled:opacity-70"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
+                {isSubmitting ? "Submitting..." : "Submit Ticket"}
               </button>
             </div>
           </div>
         </form>
-
       </div>
     </div>
   );
