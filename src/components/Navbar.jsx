@@ -33,7 +33,7 @@ function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await apiFetch("/auth/logout", "POST", { accessToken: user.accessToken });
+    await apiFetch("/auth/logout", "POST", { refreshToken: user.refreshToken });
     logout();
     navigate("/login");
   };
